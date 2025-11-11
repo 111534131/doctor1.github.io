@@ -3,9 +3,9 @@
 -- https://www.phpmyadmin.net/
 --
 -- 主機： 127.0.0.1
--- 產生時間： 2025-11-04 17:25:25
+-- 產生時間： 2025-11-11 08:45:14
 -- 伺服器版本： 10.4.32-MariaDB
--- PHP 版本： 8.2.12
+-- PHP 版本： 8.0.30
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -52,6 +52,13 @@ CREATE TABLE `appointments` (
   `Notes` longtext DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- 傾印資料表的資料 `appointments`
+--
+
+INSERT INTO `appointments` (`Id`, `PatientId`, `DoctorId`, `AppointmentTime`, `Status`, `Notes`) VALUES
+(1, 3, 4, '2025-11-12 05:00:00.000000', NULL, NULL);
+
 -- --------------------------------------------------------
 
 --
@@ -65,13 +72,6 @@ CREATE TABLE `doctoravailabilities` (
   `EndTime` datetime(6) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- 傾印資料表的資料 `doctoravailabilities`
---
-
-INSERT INTO `doctoravailabilities` (`Id`, `DoctorId`, `StartTime`, `EndTime`) VALUES
-(23, 3, '2025-11-05 09:24:00.000000', '2025-11-05 13:24:00.000000');
-
 -- --------------------------------------------------------
 
 --
@@ -83,15 +83,17 @@ CREATE TABLE `doctors` (
   `Name` longtext DEFAULT NULL,
   `Specialty` longtext DEFAULT NULL,
   `ContactInfo` longtext DEFAULT NULL,
-  `UserId` int(11) DEFAULT NULL
+  `UserId` int(11) DEFAULT NULL,
+  `CancellationPolicyHours` int(11) NOT NULL DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- 傾印資料表的資料 `doctors`
 --
 
-INSERT INTO `doctors` (`Id`, `Name`, `Specialty`, `ContactInfo`, `UserId`) VALUES
-(3, 'Doctor User', 'General Physiotherapy', 'doctor@example.com', 2);
+INSERT INTO `doctors` (`Id`, `Name`, `Specialty`, `ContactInfo`, `UserId`, `CancellationPolicyHours`) VALUES
+(3, 'Doctor User', 'General Physiotherapy', 'doctor@example.com', 2, 0),
+(4, '陳博源', '治療', NULL, 5, 48);
 
 -- --------------------------------------------------------
 
@@ -119,8 +121,20 @@ CREATE TABLE `patients` (
   `Id` int(11) NOT NULL,
   `Name` longtext DEFAULT NULL,
   `ContactInfo` longtext DEFAULT NULL,
-  `DateOfBirth` datetime(6) NOT NULL
+  `DateOfBirth` datetime(6) NOT NULL,
+  `UserId` int(11) NOT NULL DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- 傾印資料表的資料 `patients`
+--
+
+INSERT INTO `patients` (`Id`, `Name`, `ContactInfo`, `DateOfBirth`, `UserId`) VALUES
+(1, 'Test User', 'user@example.com', '1995-11-11 05:43:35.741921', 3),
+(2, 'Doctor User', 'doctor@example.com', '1995-11-11 05:44:09.673363', 2),
+(3, '張益誠111534131', '111534131@stu.ukn.edu.tw', '1995-11-11 06:10:13.310790', 4),
+(4, '陳博源111534106', '111534106@stu.ukn.edu.tw', '1995-11-11 06:11:45.612065', 5),
+(5, 'Admin User', 'admin@example.com', '1995-11-11 06:21:24.981420', 1);
 
 -- --------------------------------------------------------
 
@@ -144,7 +158,9 @@ CREATE TABLE `users` (
 INSERT INTO `users` (`Id`, `Username`, `PasswordHash`, `Role`, `Email`, `GoogleId`) VALUES
 (1, 'Admin User', '$2a$11$u2A8KptzlEbaTO/YYlEmLO9NVloTyi8pEsPDzDASoQk1hTDCCru4m', 'Admin', 'admin@example.com', NULL),
 (2, 'Doctor User', '$2a$11$sefcCCwxDFJkhXdsdFTqUuzeFHQDdNeg9YXG2C8ctdqIbOiLR7.Qy', 'Doctor', 'doctor@example.com', NULL),
-(3, 'Test User', '$2a$11$AOXCf./106bDAvh4N6T40.nRUkujIRm3/EzgGMORNj/OOyT34Fbki', 'User', 'user@example.com', NULL);
+(3, 'Test User', '$2a$11$AOXCf./106bDAvh4N6T40.nRUkujIRm3/EzgGMORNj/OOyT34Fbki', 'User', 'user@example.com', NULL),
+(4, '張益誠111534131', NULL, 'User', '111534131@stu.ukn.edu.tw', '105712737249491088866'),
+(5, '陳博源111534106', NULL, 'Doctor', '111534106@stu.ukn.edu.tw', '100813922327970142971');
 
 -- --------------------------------------------------------
 
@@ -166,7 +182,9 @@ INSERT INTO `__efmigrationshistory` (`MigrationId`, `ProductVersion`) VALUES
 ('20251103064314_AddAuthToUser', '8.0.8'),
 ('20251103113009_AddDoctorSchedule', '8.0.8'),
 ('20251103121316_AddDoctorAvailability', '8.0.8'),
-('20251104162216_AddDoctorAvailabilityRelationshipFinal', '8.0.8');
+('20251104162216_AddDoctorAvailabilityRelationshipFinal', '8.0.8'),
+('20251111022444_AddUserToPatient', '8.0.8'),
+('20251111063142_AddCancellationPolicyToDoctor', '8.0.8');
 
 --
 -- 已傾印資料表的索引
@@ -212,7 +230,8 @@ ALTER TABLE `medicalrecords`
 -- 資料表索引 `patients`
 --
 ALTER TABLE `patients`
-  ADD PRIMARY KEY (`Id`);
+  ADD PRIMARY KEY (`Id`),
+  ADD KEY `IX_Patients_UserId` (`UserId`);
 
 --
 -- 資料表索引 `users`
@@ -240,19 +259,19 @@ ALTER TABLE `acupuncturepoints`
 -- 使用資料表自動遞增(AUTO_INCREMENT) `appointments`
 --
 ALTER TABLE `appointments`
-  MODIFY `Id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `Id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- 使用資料表自動遞增(AUTO_INCREMENT) `doctoravailabilities`
 --
 ALTER TABLE `doctoravailabilities`
-  MODIFY `Id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=24;
+  MODIFY `Id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=27;
 
 --
 -- 使用資料表自動遞增(AUTO_INCREMENT) `doctors`
 --
 ALTER TABLE `doctors`
-  MODIFY `Id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `Id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- 使用資料表自動遞增(AUTO_INCREMENT) `medicalrecords`
@@ -264,13 +283,13 @@ ALTER TABLE `medicalrecords`
 -- 使用資料表自動遞增(AUTO_INCREMENT) `patients`
 --
 ALTER TABLE `patients`
-  MODIFY `Id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `Id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- 使用資料表自動遞增(AUTO_INCREMENT) `users`
 --
 ALTER TABLE `users`
-  MODIFY `Id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `Id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- 已傾印資料表的限制式
@@ -301,6 +320,12 @@ ALTER TABLE `doctors`
 ALTER TABLE `medicalrecords`
   ADD CONSTRAINT `FK_MedicalRecords_Doctors_DoctorId` FOREIGN KEY (`DoctorId`) REFERENCES `doctors` (`Id`) ON DELETE CASCADE,
   ADD CONSTRAINT `FK_MedicalRecords_Patients_PatientId` FOREIGN KEY (`PatientId`) REFERENCES `patients` (`Id`) ON DELETE CASCADE;
+
+--
+-- 資料表的限制式 `patients`
+--
+ALTER TABLE `patients`
+  ADD CONSTRAINT `FK_Patients_Users_UserId` FOREIGN KEY (`UserId`) REFERENCES `users` (`Id`) ON DELETE CASCADE;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

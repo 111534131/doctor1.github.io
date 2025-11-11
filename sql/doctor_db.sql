@@ -3,9 +3,9 @@
 -- https://www.phpmyadmin.net/
 --
 -- 主機： 127.0.0.1
--- 產生時間： 2025-11-04 17:25:29
+-- 產生時間： 2025-11-11 08:45:06
 -- 伺服器版本： 10.4.32-MariaDB
--- PHP 版本： 8.2.12
+-- PHP 版本： 8.0.30
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
