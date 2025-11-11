@@ -1,0 +1,5 @@
+:5067/api/doctors/user/5:1  Failed to load resource: the server responded with a status of 404 (Not Found)Understand this error
+script.js:239 Failed to fetch doctor info for user
+fetchDoctorInfo @ script.js:239Understand this error
+:5067/api/doctors/me/settings:1  Failed to load resource: the server responded with a status of 500 (Internal Server Error)Understand this error
+script.js:1061 The specified value "undefined" cannot be parsed, or is out of range.
